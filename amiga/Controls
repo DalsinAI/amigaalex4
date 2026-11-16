@@ -1,0 +1,21 @@
+Alex the Allegator 4: the keys
+==============================
+
+  Cursor left/right   walk
+  Cursor up           (on the menus) up
+  Cursor down         (on the menus) down
+  Alt                 jump
+  Ctrl                fire: spit out what Alex has eaten
+  Space or Return     choose on the menus, skip the intro and the end
+  Esc                 back to the menu, or quit from it
+  F12                 a screenshot, saved as User/a4_000.png and on
+
+On the main menu Options sets the window size, full screen, colour or the
+original GameBoy greens, and the sound. Your settings, high scores and how
+many cherries and stars you have found on each level are kept in the
+drawer's User drawer (config.ini, highscore.dat); the start-up log is
+User/log.txt.
+
+To play your own levels, start it from a Shell with your level list:
+
+    Alex4 Work:MyLevels/levels.txt

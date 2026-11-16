@@ -1,0 +1,20 @@
+Alex the Allegator 4: licences
+==============================
+
+The game: Alex the Allegator 4 by Johan Peitz, Free Lunch Design (2003),
+music and sound effects by Anders Svensson, in the SDL 2 version by
+carstene1ns (https://github.com/carstene1ns/alex4).
+
+- The program and its data (pictures, maps, scripts, music and sound
+  effects) are under the GNU General Public License, version 2 or later
+  (COPYING.txt; LICENSE.txt is upstream's own note, README-Alex4.txt its
+  read-me).
+- iniparser (by Nicolas Devillard, MIT) is built into the program; its
+  notice is in LICENSE.txt. upstream's miniz is not used on the Amiga.
+- SDL 2 and SDL2_mixer are GFOpenUp's (LIBS:GFOpenGPU), not in this drawer.
+- The Amiga port's own files (amiga/, AMIGA_PORT.md, package/, tools/,
+  tests/) are GPL-2.0-or-later, like the game; the GlowIcon art is The
+  AmiCradle Team's own.
+
+The game's data are upstream's own, unchanged; the port ships them
+unpacked in Data/ instead of in data.zip.

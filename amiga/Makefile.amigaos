@@ -1,0 +1,97 @@
+# Alex the Allegator 4 for GFOS (AmigaOS 3.2 with GFOpenUp), 68040/68060 +
+# FPU, on GFOpenUp's SDL 2 (LIBS:GFOpenGPU/SDL2.module and
+# SDL2_mixer.module).
+#
+#   make -f amiga/Makefile.amigaos -j4 A4=/path/to/alex4 [STOVE=/path/to/os32-gcc16-open6]
+#
+# A4 is upstream Alex 4 at the commit package/alex4.lock names, with
+# amiga/patches applied (package/build-amiga.sh fetches and patches it).
+# STOVE is a GFOpenAmigaGCC 16.2.0-open6 stove: its prefix/ has the
+# compiler, the NDK and GFOpenGPU's SDL 2 kit (prefix/m68k-amigaos).
+#
+# miniz is not built: amiga/miniz.h and amiga/amiga_data.c read the data
+# from the unpacked PROGDIR:Data drawer instead of data.zip, and write
+# screenshots as stored-block PNGs.
+#
+# Output: build/amigaos/Alex4/ (the drawer: Alex4, Data/ with the
+# pictures, maps, scripts, sounds and music, User/, ReadMe, Controls, the
+# licences, with GlowIcons), build/amigaos/Alex4.info and Install-Alex4
+# beside them.
+
+A4      ?= ../alex4
+STOVE   ?= $(HOME)/AmiCradle/stoves/os32-gcc16-open6
+PREFIX  ?= $(STOVE)/prefix
+SDL2KIT ?= $(PREFIX)/m68k-amigaos
+CC      = $(PREFIX)/bin/m68k-amigaos-gcc
+STRIP   = $(PREFIX)/bin/m68k-amigaos-strip
+# hard float: GFOpenGPU's SDL 2 kit is built -m68881
+CPU     ?= -m68040 -m68881
+# -fno-tree-loop-distribute-patterns: GCC 16's loop miscompile (the kit's
+# sdl2-config gives it for GCC 16 too).
+OPT     ?= -O2 -fomit-frame-pointer -fno-tree-loop-distribute-patterns -fno-math-errno
+
+VERSION := $(shell sed -n 's/^ALEX4_VERSION=//p' package/alex4.lock)
+DATADIRS := $(shell sed -n 's/^ALEX4_DATA_DIRS="\(.*\)"/\1/p' package/alex4.lock)
+DEFS    = -D__amigaos__ -DDATADIR='"PROGDIR:Data"'
+# amiga/ first: its miniz.h stands in for ext/miniz
+INC     = -Iamiga -I$(A4)/src -I$(A4)/data -I$(A4)/ext/iniparser -I$(SDL2KIT)/include/SDL2
+CFLAGS  = -noixemul $(OPT) $(CPU) -std=gnu99 $(DEFS) $(INC)
+LDFLAGS = -noixemul $(CPU)
+LIBS    = -L$(SDL2KIT)/lib -lSDL2_mixer -lSDL2 -lm
+
+BUILD   = build/amigaos
+OBJDIR  = $(BUILD)/obj
+OUT     = $(BUILD)/Alex4
+PROG    = Alex4
+
+# upstream's CMakeLists.txt list (no editor, no shooter, no unix.c)
+GAME    = main actor bullet control fixed_math data hisc map options particle \
+          player script scroller timer token misc sdl/port sdl/sound
+OBJS    = $(addprefix $(OBJDIR)/src/,$(addsuffix .o,$(GAME))) \
+          $(OBJDIR)/ext/iniparser/dictionary.o $(OBJDIR)/ext/iniparser/iniparser.o \
+          $(OBJDIR)/amiga/amiga_start.o $(OBJDIR)/amiga/amiga_data.o \
+          $(OBJDIR)/amiga/amiga_compat.o
+
+all: $(OUT)/$(PROG) package
+
+$(BUILD)/$(PROG).debug: $(OBJS)
+	@mkdir -p $(BUILD)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+
+$(OUT)/$(PROG): $(BUILD)/$(PROG).debug
+	@mkdir -p $(OUT)
+	$(STRIP) -o $@ $<
+
+package: $(OUT)/$(PROG) AMIGA_PORT.md amiga/Licences.txt amiga/Controls
+	mkdir -p $(OUT)/User $(OUT)/Data
+	for d in $(DATADIRS); do rm -rf $(OUT)/Data/$$d; cp -R $(A4)/data/$$d $(OUT)/Data/$$d; done
+	cp amiga/Controls $(OUT)/Controls
+	cp AMIGA_PORT.md $(OUT)/ReadMe
+	cp $(A4)/LICENSE.md $(OUT)/LICENSE.txt
+	cp $(A4)/COPYING $(OUT)/COPYING.txt
+	cp $(A4)/README.md $(OUT)/README-Alex4.txt
+	cp amiga/Licences.txt $(OUT)/Licences.txt
+	cp amiga/icons/Alex4.info amiga/icons/ReadMe.info $(OUT)/
+	for f in LICENSE.txt COPYING.txt README-Alex4.txt Licences.txt Controls; do \
+	    cp amiga/icons/ReadMe.info $(OUT)/$$f.info; done
+	cp amiga/icons/Data.info $(OUT)/User.info
+	cp amiga/icons/Data.info $(OUT)/Data.info
+	cp amiga/icons/Alex4-drawer.info $(BUILD)/Alex4.info
+	cp amiga/Install-Alex4 amiga/Install-Alex4.info $(BUILD)/
+
+$(OBJDIR)/src/%.o: $(A4)/src/%.c $(wildcard $(A4)/src/*.h) amiga/miniz.h
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJDIR)/ext/%.o: $(A4)/ext/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJDIR)/amiga/%.o: amiga/%.c amiga/miniz.h
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+clean:
+	rm -rf $(BUILD)
+
+.PHONY: all package clean

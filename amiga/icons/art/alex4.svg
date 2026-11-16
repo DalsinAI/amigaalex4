@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Alex the Allegator 4's GlowIcon art: a little green allegator on a
+     brick ledge, a cherry and a star. The AmiCradle Team's own drawing. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9fd8f6"/><stop offset="1" stop-color="#e9f7d6"/>
+    </linearGradient>
+    <linearGradient id="gator" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8fe36a"/><stop offset="1" stop-color="#2f8f2a"/>
+    </linearGradient>
+    <radialGradient id="cherry" cx="0.35" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#ffb0b0"/><stop offset="0.4" stop-color="#e2202a"/><stop offset="1" stop-color="#7a0010"/>
+    </radialGradient>
+  </defs>
+  <rect x="6" y="6" width="116" height="116" rx="10" fill="url(#sky)" stroke="#29506b" stroke-width="3"/>
+  <!-- the ledge -->
+  <g stroke="#3d1f0a" stroke-width="1.5">
+    <rect x="8" y="96" width="112" height="24" fill="#b9652c"/>
+    <path d="M8 108 H120 M30 96 V108 M62 96 V108 M94 96 V108 M46 108 V120 M78 108 V120 M110 108 V120" fill="none"/>
+  </g>
+  <!-- the star -->
+  <path d="M100 14 l5 11 12 1 -9 8 3 12 -11 -6 -11 6 3 -12 -9 -8 12 -1z" fill="#ffd93b" stroke="#a87400" stroke-width="2"/>
+  <!-- the cherry -->
+  <path d="M28 34 q6 -14 18 -16" fill="none" stroke="#2f6b1d" stroke-width="3"/>
+  <circle cx="26" cy="42" r="9" fill="url(#cherry)" stroke="#5a0010" stroke-width="1.5"/>
+  <!-- Alex: body, snout, eye, legs -->
+  <g stroke="#1b4d16" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M34 92 q-4 -26 18 -32 l10 -2 q10 -18 34 -14 q18 4 16 14 q-2 8 -18 8 l-14 0 q6 10 2 26z" fill="url(#gator)"/>
+    <rect x="42" y="86" width="12" height="10" rx="3" fill="#3fa33a"/>
+    <rect x="66" y="86" width="12" height="10" rx="3" fill="#3fa33a"/>
+    <path d="M34 80 q-14 2 -20 12 q12 2 22 -4z" fill="#3fa33a"/>
+  </g>
+  <path d="M82 58 q12 2 26 -2" fill="none" stroke="#1b4d16" stroke-width="2"/>
+  <g fill="#ffffff" stroke="#1b4d16" stroke-width="1.5">
+    <path d="M86 58 l3 5 3 -5z"/><path d="M96 58 l3 5 3 -5z"/>
+  </g>
+  <circle cx="80" cy="38" r="8" fill="#ffffff" stroke="#1b4d16" stroke-width="2"/>
+  <circle cx="82" cy="39" r="3.5" fill="#101010"/>
+  <ellipse cx="56" cy="76" rx="9" ry="7" fill="#d9f5b3" opacity="0.8"/>
+</svg>

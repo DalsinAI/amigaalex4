@@ -1,0 +1,178 @@
+diff --git a/src/main.c b/src/main.c
+index 1b4e400..c3537df 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -308,7 +308,7 @@ int init_game(const char *map_file) {
+ 	snprintf(filename, sizeof(filename), "%s/.alex4/config",
+ 		homedir? homedir:".");
+ #else
+-	strcpy(filename, "config.ini");
++	strcpy(filename, ALEX4_USER "config.ini");
+ #endif
+ 	if(!load_options(&options, filename))
+ 		log2file("  *** failed, using defaults");
+@@ -359,12 +359,12 @@ int init_game(const char *map_file) {
+ 
+ 	// load data
+ 	log2file(" loading data");
+-	if (!exists(DATADIR "/data.zip")) {
++	if (!exists(ALEX4_DATAFILE)) {
+ 		log2file("  *** failed");
+-		printf("ALEX4:\n data file %s not found.\n", DATADIR "/data.zip");
++		printf("ALEX4:\n data file %s not found.\n", ALEX4_DATAFILE);
+ 		return false;
+ 	}
+-	if (!load_datafile(DATADIR "/data.zip")) {
++	if (!load_datafile(ALEX4_DATAFILE)) {
+ 		log2file("  *** failed");
+ 		printf("ALEX4:\nFailed to load data.\n");
+ 		return false;
+@@ -383,7 +383,7 @@ int init_game(const char *map_file) {
+ 	snprintf(filename, sizeof(filename), "%s/.alex4/highscore",
+ 		homedir? homedir:".");
+ #else
+-	strcpy(filename, "highscore.dat");
++	strcpy(filename, ALEX4_USER "highscore.dat");
+ #endif
+ 	if (!exists(filename)) high_ok = false;
+ 	if(high_ok)
+@@ -394,7 +394,7 @@ int init_game(const char *map_file) {
+ #ifdef __unix__
+ 		strcat(filename, "-shooter")
+ #else
+-		strcpy(filename, "highscore-shooter.dat");
++		strcpy(filename, ALEX4_USER "highscore-shooter.dat");
+ #endif
+ 		high_ok = load_hisc_table(hisc_table_space, filename);
+ 	}
+@@ -521,7 +521,7 @@ void uninit_game() {
+ 		snprintf(filename, sizeof(filename), "%s/.alex4/config",
+ 			homedir? homedir:".");
+ #else
+-		strcpy(filename, "config.ini");
++		strcpy(filename, ALEX4_USER "config.ini");
+ #endif
+ 		save_options(&options, filename);
+ 
+@@ -529,14 +529,14 @@ void uninit_game() {
+ 		snprintf(filename, sizeof(filename), "%s/.alex4/highscore",
+ 			homedir? homedir:".");
+ #else
+-		strcpy(filename, "highscore.dat");
++		strcpy(filename, ALEX4_USER "highscore.dat");
+ #endif
+ 		save_hisc_table(hisc_table, filename);
+ #ifdef ENABLE_SHOOTER
+ #ifdef __unix__
+ 		strcat(filename, "-shooter");
+ #else
+-		strcpy(filename, "highscore-shooter.dat");
++		strcpy(filename, ALEX4_USER "highscore-shooter.dat");
+ #endif
+ 		save_hisc_table(hisc_table_space, pf);
+ #endif
+@@ -2360,7 +2360,7 @@ int do_main_menu() {
+ 					"%s/.alex4/config",
+ 					homedir? homedir:".");
+ #else
+-				strcpy(filename, "config.ini");
++				strcpy(filename, ALEX4_USER "config.ini");
+ #endif
+ 				save_options(&options, filename);
+ 			}
+@@ -2467,7 +2467,9 @@ void switch_color_mode(bool colorize) {
+ int main(int argc, char **argv) {
+ 	int i;
+ 	char full_path[1024];
+-#ifndef __unix__
++#if defined(__amigaos__)
++	// the drawer's own User drawer: no home, no working directory
++#elif !defined(__unix__)
+ 	char *working_directory;
+ #else
+ 	char *homedir = get_homedir();
+@@ -2483,6 +2485,9 @@ int main(int argc, char **argv) {
+ 	check_and_create_dir(full_path);
+ 	strcat(full_path, "/log.txt");
+ 	log_fp = fopen(full_path, "wt");
++#elif defined(__amigaos__)
++	// the log is in the drawer's User drawer (PROGDIR: is the drawer)
++	log_fp = fopen(ALEX4_USER "log.txt", "wt");
+ #else
+ 	// get working directory
+ 	get_executable_name(full_path, 1024);
+@@ -2502,7 +2507,7 @@ int main(int argc, char **argv) {
+ 	for(i = 0; i < argc; i ++) {
+ 		log2file("   %s", argv[i]);
+ 	}
+-#ifndef __unix__
++#if !defined(__unix__) && !defined(__amigaos__)
+ 	log2file("Working directory is:\n   %s", working_directory);
+ 	free(working_directory);
+ #endif
+diff --git a/src/misc.c b/src/misc.c
+index 0a31e95..8e17e98 100644
+--- a/src/misc.c
++++ b/src/misc.c
+@@ -51,7 +51,7 @@ void take_screenshot(BITMAP *bmp) {
+ 
+ 	// check if the file name allready exists
+ 	do {
+-		sprintf(buf, "a4_%03d.png", number ++);
++		sprintf(buf, ALEX4_USER "a4_%03d.png", number ++);
+ 		if (!exists(buf)) ok = 1;
+ 		if (number > 999) return;
+ 	} while(!ok);
+diff --git a/src/options.c b/src/options.c
+index bad04aa..bd3074e 100644
+--- a/src/options.c
++++ b/src/options.c
+@@ -150,8 +150,8 @@ bool load_options(Toptions *o, const char *file) {
+ // resets all data
+ void reset_options(Toptions *o) {
+ 	o->fullscreen = false;
+-	o->width = SCREEN_W;
+-	o->height = SCREEN_H;
++	o->width = ALEX4_DEFAULT_W;
++	o->height = ALEX4_DEFAULT_H;
+ 	o->use_vsync = true;
+ 	o->colorize = false;
+ 
+diff --git a/src/port.h b/src/port.h
+index 4d17b5a..9c0e734 100644
+--- a/src/port.h
++++ b/src/port.h
+@@ -38,6 +38,20 @@
+ 
+ #define SCREEN_W 160
+ #define SCREEN_H 120
++
++// where the game keeps its own files and finds its data
++#ifdef __amigaos__
++// AmigaOS: the drawer's User drawer, and the data unpacked in PROGDIR:Data
++#define ALEX4_USER "PROGDIR:User/"
++#define ALEX4_DATAFILE DATADIR
++#define ALEX4_DEFAULT_W (SCREEN_W * 4)
++#define ALEX4_DEFAULT_H (SCREEN_H * 4)
++#else
++#define ALEX4_USER ""
++#define ALEX4_DATAFILE DATADIR "/data.zip"
++#define ALEX4_DEFAULT_W SCREEN_W
++#define ALEX4_DEFAULT_H SCREEN_H
++#endif
+ #define TRUE true
+ #define FALSE false
+ 
+diff --git a/src/sdl/port.c b/src/sdl/port.c
+index 5f4c58f..bc94a9b 100644
+--- a/src/sdl/port.c
++++ b/src/sdl/port.c
+@@ -685,7 +685,7 @@ void take_screenshot_platform(BITMAP *bmp, const char *filename) {
+ 	SDL_Texture *old = SDL_GetRenderTarget(renderer);
+ 	SDL_SetRenderTarget(renderer, bmp->tex);
+ 
+-	if(SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, tmp->pixels, tmp->pitch)) {
++	if(SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_RGBA32, tmp->pixels, tmp->pitch)) {
+ 		SDL_SetRenderTarget(renderer, old);
+ 		SDL_FreeSurface(tmp);
+ 		return;

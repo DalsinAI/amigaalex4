@@ -1,0 +1,14 @@
+{
+  "name": "Alex the Allegator 4",
+  "version": "1.3-gfos1",
+  "drawer": "Alex4",
+  "program": "Alex4",
+  "cpu": "68040",
+  "fpu": true,
+  "space": 3000000,
+  "modules": ["SDL2.module", "SDL2_mixer.module"],
+  "keep": ["User"],
+  "parent": "Work:Games",
+  "badge": "icons/art/alex4.png",
+  "script": "Install-Alex4"
+}
